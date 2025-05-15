@@ -17,6 +17,7 @@ func NewInput(window *fyne.Window) *customInput {
 	entry.Wrapping = fyne.TextWrapBreak
 	entry.setWindow(window)
 	entry.SetPlaceHolder("Type here what do you want to translate")
+
 	return entry
 }
 

@@ -24,10 +24,13 @@ func main() {
 }
 
 func makeUI(w fyne.Window) fyne.CanvasObject {
-	header := canvas.NewText("fanyiqi", theme.PrimaryColor())
+	header := canvas.NewText("fanyiqi", theme.Color(theme.ColorNamePrimary))
 	header.TextSize = 25
-	input := views.NewInput(&w)
 
+	footer := canvas.NewText("Press BATATA to see the shorcuts", theme.Color(theme.ColorNamePrimary))
+	footer.TextSize = 10
+
+	input := views.NewInput(&w)
 	output := views.NewOutput(&w)
 
 	input.OnChanged = func(typedChar string) {
@@ -35,18 +38,22 @@ func makeUI(w fyne.Window) fyne.CanvasObject {
 		output.Refresh()
 	}
 
-	clear := widget.NewButtonWithIcon("clear", theme.ContentClearIcon(), func() {
-		output.Text = ""
-		output.Refresh()
-		input.Text = ""
-		input.Refresh()
-	})
+	inputSelectEntry := widget.NewSelectEntry([]string{"Português", "Inglês"})
+	inputSelectEntry.OnChanged = func(typedChar string) {}
+	outputSelectEntry := widget.NewSelectEntry([]string{"Português", "Inglês"})
 
-	content := container.NewGridWithColumns(2, input, output)
+	inputView := container.NewBorder(inputSelectEntry, nil, nil, nil, input)
+	outputView := container.NewBorder(outputSelectEntry, nil, nil, nil, output)
+
+	content := container.NewGridWithColumns(
+		2,
+		inputView,
+		outputView,
+	)
 
 	return container.NewBorder(
 		header,
-		container.NewHBox(clear),
+		footer,
 		nil,
 		nil,
 		content,

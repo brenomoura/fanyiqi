@@ -16,6 +16,7 @@ func SetWindowSize() fyne.Size {
 
 func Close(window fyne.Window) {
 	window.Canvas().SetOnTypedKey(func(event *fyne.KeyEvent) {
+		println(event)
 		if event.Name == fyne.KeyEscape {
 			window.Close()
 		}

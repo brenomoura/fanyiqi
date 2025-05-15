@@ -17,6 +17,7 @@ func NewOutput(window *fyne.Window) *customOutput {
 	output.setWindow(window)
 	output.Wrapping = fyne.TextWrapBreak
 	output.Disable()
+
 	return output
 }
 
