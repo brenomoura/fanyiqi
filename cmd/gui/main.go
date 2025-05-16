@@ -9,7 +9,6 @@ import (
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/theme"
-	"fyne.io/fyne/v2/widget"
 )
 
 func main() {
@@ -38,9 +37,14 @@ func makeUI(w fyne.Window) fyne.CanvasObject {
 		output.Refresh()
 	}
 
-	inputSelectEntry := widget.NewSelectEntry([]string{"Português", "Inglês"})
-	inputSelectEntry.OnChanged = func(typedChar string) {}
-	outputSelectEntry := widget.NewSelectEntry([]string{"Português", "Inglês"})
+	inputSelectEntry := views.NewCustomSelectEntry(views.CustomSelectEntryParams{
+		Window:  &w,
+		Options: []string{"Português", "Inglês"},
+	})
+	outputSelectEntry := views.NewCustomSelectEntry(views.CustomSelectEntryParams{
+		Window:  &w,
+		Options: []string{"Português", "Inglês"},
+	})
 
 	inputView := container.NewBorder(inputSelectEntry, nil, nil, nil, input)
 	outputView := container.NewBorder(outputSelectEntry, nil, nil, nil, output)
