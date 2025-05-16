@@ -1,6 +1,8 @@
 package main
 
 import (
+	"time"
+
 	"github.com/brenomoura/fanyiqi/ui/utils"
 	"github.com/brenomoura/fanyiqi/ui/views"
 
@@ -8,7 +10,9 @@ import (
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/theme"
+	"fyne.io/fyne/v2/widget"
 )
 
 func main() {
@@ -31,10 +35,31 @@ func makeUI(w fyne.Window) fyne.CanvasObject {
 
 	input := views.NewInput(&w)
 	output := views.NewOutput(&w)
+	bar := widget.NewProgressBarInfinite()
+	bar.Theme().Color(theme.ColorNameDisabled, theme.VariantDark)
+	bar.Hide()
+
+	outputStack := container.New(layout.NewStackLayout(), output, bar)
+
+	clearButton := widget.NewButtonWithIcon("Clear", theme.ContentClearIcon(), func() {
+		input.Text = ""
+		input.Refresh()
+		output.Text = ""
+		output.Refresh()
+	})
 
 	input.OnChanged = func(typedChar string) {
-		output.Text = typedChar
+		output.Text = ""
 		output.Refresh()
+		bar.Show()
+		go func() {
+			time.Sleep(time.Millisecond * 1000)
+			fyne.Do(func() {
+				bar.Hide()
+				output.Text = typedChar
+				output.Refresh()
+			})
+		}()
 	}
 
 	inputSelectEntry := views.NewCustomSelectEntry(views.CustomSelectEntryParams{
@@ -46,8 +71,8 @@ func makeUI(w fyne.Window) fyne.CanvasObject {
 		Options: []string{"Português", "Inglês"},
 	})
 
-	inputView := container.NewBorder(inputSelectEntry, nil, nil, nil, input)
-	outputView := container.NewBorder(outputSelectEntry, nil, nil, nil, output)
+	inputView := container.NewBorder(inputSelectEntry, clearButton, nil, nil, input)
+	outputView := container.NewBorder(outputSelectEntry, nil, nil, nil, outputStack)
 
 	content := container.NewGridWithColumns(
 		2,
