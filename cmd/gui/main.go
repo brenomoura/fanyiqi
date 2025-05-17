@@ -39,7 +39,8 @@ func makeUI(w fyne.Window) fyne.CanvasObject {
 	bar.Theme().Color(theme.ColorNameDisabled, theme.VariantDark)
 	bar.Hide()
 
-	outputStack := container.New(layout.NewStackLayout(), output, bar)
+	loading := views.NewLoading()
+	outputStack := container.New(layout.NewStackLayout(), output, loading.Container)
 
 	clearButton := widget.NewButtonWithIcon("Clear", theme.ContentClearIcon(), func() {
 		input.Text = ""
@@ -51,15 +52,16 @@ func makeUI(w fyne.Window) fyne.CanvasObject {
 	input.OnChanged = func(typedChar string) {
 		output.Text = ""
 		output.Refresh()
-		bar.Show()
+		loading.SetLoading(true)
 		go func() {
 			time.Sleep(time.Millisecond * 1000)
+			loading.SetLoading(false)
 			fyne.Do(func() {
-				bar.Hide()
 				output.Text = typedChar
 				output.Refresh()
 			})
 		}()
+
 	}
 
 	inputSelectEntry := views.NewCustomSelectEntry(views.CustomSelectEntryParams{
