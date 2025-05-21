@@ -26,23 +26,20 @@ func main() {
 	window.ShowAndRun()
 }
 
-func makeUI(w fyne.Window) fyne.CanvasObject {
+func makeUI(window fyne.Window) fyne.CanvasObject {
 	header := canvas.NewText("fanyiqi", theme.Color(theme.ColorNamePrimary))
 	header.TextSize = 25
 
 	footer := canvas.NewText("Press BATATA to see the shorcuts", theme.Color(theme.ColorNamePrimary))
 	footer.TextSize = 10
 
-	input := views.NewInput(&w)
-	output := views.NewOutput(&w)
-	bar := widget.NewProgressBarInfinite()
-	bar.Theme().Color(theme.ColorNameDisabled, theme.VariantDark)
-	bar.Hide()
+	input := views.NewInput(&window)
+	output := views.NewOutput(&window)
 
 	loading := views.NewLoading()
 	outputStack := container.New(layout.NewStackLayout(), output, loading.Container)
 
-	clearButton := widget.NewButtonWithIcon("Clear", theme.ContentClearIcon(), func() {
+	clearButton := widget.NewButtonWithIcon("Clear (Ctrl + PQP)", theme.ContentClearIcon(), func() {
 		input.Text = ""
 		input.Refresh()
 		output.Text = ""
@@ -64,13 +61,16 @@ func makeUI(w fyne.Window) fyne.CanvasObject {
 
 	}
 
+	options := []string{"Português", "Inglês"}
+
 	inputSelectEntry := views.NewCustomSelectEntry(views.CustomSelectEntryParams{
-		Window:  &w,
-		Options: []string{"Português", "Inglês"},
+		Window:  &window,
+		Options: options,
 	})
+
 	outputSelectEntry := views.NewCustomSelectEntry(views.CustomSelectEntryParams{
-		Window:  &w,
-		Options: []string{"Português", "Inglês"},
+		Window:  &window,
+		Options: options,
 	})
 
 	inputView := container.NewBorder(inputSelectEntry, clearButton, nil, nil, input)

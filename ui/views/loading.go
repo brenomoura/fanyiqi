@@ -31,7 +31,7 @@ func NewLoading() *Loading {
 		Rectangle:      rec,
 		Text:           text,
 		Container:      cont,
-		LoadingMessage: "Carregando meu chapa",
+		LoadingMessage: "Loading",
 		loading:        false,
 	}
 }

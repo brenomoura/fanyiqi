@@ -7,6 +7,7 @@ import (
 
 type customInput struct {
 	widget.Entry
+	fyne.Tabbable
 	window *fyne.Window
 }
 
@@ -29,6 +30,10 @@ func (e *customInput) onEscape() {
 	if e.window != nil {
 		(*e.window).Close()
 	}
+}
+
+func (e *customInput) AcceptsTab() bool {
+	return false
 }
 
 func (e *customInput) KeyDown(key *fyne.KeyEvent) {
