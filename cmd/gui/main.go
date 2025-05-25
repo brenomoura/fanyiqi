@@ -1,6 +1,7 @@
 package main
 
 import (
+	// "os"
 	"time"
 
 	"github.com/brenomoura/fanyiqi/ui/utils"
@@ -13,24 +14,24 @@ import (
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
+	"golang.design/x/clipboard"
 )
 
 func main() {
+	// println(os.UserConfigDir())
+	err := clipboard.Init()
+	if err != nil {
+		panic(err)
+	}
 	app := app.New()
 	window := app.NewWindow("fanyiqi")
 	app.Settings().SetTheme(&views.CustomTheme{Theme: theme.DefaultTheme()})
 	window.Resize(utils.SetWindowSize())
 	window.CenterOnScreen()
-	window.SetContent(makeUI(window))
-	utils.Close(window)
-	window.ShowAndRun()
-}
-
-func makeUI(window fyne.Window) fyne.CanvasObject {
 	header := canvas.NewText("fanyiqi", theme.Color(theme.ColorNamePrimary))
 	header.TextSize = 25
 
-	footer := canvas.NewText("Press BATATA to see the shorcuts", theme.Color(theme.ColorNamePrimary))
+	footer := canvas.NewText("Press BATATA to setup a translator provider", theme.Color(theme.ColorNamePrimary))
 	footer.TextSize = 10
 
 	input := views.NewInput(&window)
@@ -58,7 +59,15 @@ func makeUI(window fyne.Window) fyne.CanvasObject {
 				output.Refresh()
 			})
 		}()
+	}
 
+	clipboardBytes := clipboard.Read(clipboard.FmtText)
+	if clipboardBytes != nil {
+		clipboardText := string(clipboard.Read(clipboard.FmtText))
+		if len(clipboardText) > 0 {
+			input.Text = clipboardText
+			input.OnChanged(input.Text)
+		}
 	}
 
 	options := []string{"Português", "Inglês"}
@@ -82,11 +91,15 @@ func makeUI(window fyne.Window) fyne.CanvasObject {
 		outputView,
 	)
 
-	return container.NewBorder(
+	ui := container.NewBorder(
 		header,
 		footer,
 		nil,
 		nil,
 		content,
 	)
+	window.SetContent(ui)
+	window.Canvas().Focus(input)
+	utils.Close(window)
+	window.ShowAndRun()
 }
