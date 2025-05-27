@@ -23,6 +23,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
 	app := app.New()
 	window := app.NewWindow("fanyiqi")
 	app.Settings().SetTheme(&views.CustomTheme{Theme: theme.DefaultTheme()})
@@ -46,6 +47,10 @@ func main() {
 		output.Text = ""
 		output.Refresh()
 	})
+
+	settingsButton := widget.NewButtonWithIcon("Settings", theme.SettingsIcon(), func() {})
+
+	buttons := container.NewGridWithColumns(2, clearButton, settingsButton)
 
 	input.OnChanged = func(typedChar string) {
 		output.Text = ""
@@ -82,13 +87,25 @@ func main() {
 		Options: options,
 	})
 
-	inputView := container.NewBorder(inputSelectEntry, clearButton, nil, nil, input)
+	inputView := container.NewBorder(inputSelectEntry, buttons, nil, nil, input)
 	outputView := container.NewBorder(outputSelectEntry, nil, nil, nil, outputStack)
 
-	content := container.NewGridWithColumns(
+	mainContent := container.NewGridWithColumns(
 		2,
 		inputView,
 		outputView,
+	)
+
+	label1 := widget.NewLabel("Label 1")
+	value1 := widget.NewLabel("Value")
+	label2 := widget.NewLabel("Label 2")
+	value2 := widget.NewLabel("Something")
+	settingsContent := container.New(
+		layout.NewFormLayout(),
+		label1,
+		value1,
+		label2,
+		value2,
 	)
 
 	ui := container.NewBorder(
@@ -96,8 +113,15 @@ func main() {
 		footer,
 		nil,
 		nil,
-		content,
+		mainContent,
 	)
+
+	settingsButton.OnTapped = func() {
+		ui.Objects[0] = settingsContent
+		println("test")
+		ui.Refresh()
+	}
+
 	window.SetContent(ui)
 	window.Canvas().Focus(input)
 	utils.Close(window)
