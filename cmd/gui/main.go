@@ -32,16 +32,13 @@ func main() {
 	header := canvas.NewText("fanyiqi", theme.Color(theme.ColorNamePrimary))
 	header.TextSize = 25
 
-	footer := canvas.NewText("Press BATATA to setup a translator provider", theme.Color(theme.ColorNamePrimary))
-	footer.TextSize = 10
-
 	input := views.NewInput(&window)
 	output := views.NewOutput(&window)
 
 	loading := views.NewLoading()
 	outputStack := container.New(layout.NewStackLayout(), output, loading.Container)
 
-	clearButton := widget.NewButtonWithIcon("Clear (Ctrl + PQP)", theme.ContentClearIcon(), func() {
+	clearButton := widget.NewButtonWithIcon("Clear input text (Ctrl + PQP)", theme.ContentClearIcon(), func() {
 		input.Text = ""
 		input.Refresh()
 		output.Text = ""
@@ -111,13 +108,13 @@ func main() {
 		true,
 	)
 
-	settings := container.New(layout.NewVBoxLayout(), providerSelect, apiKeyEntry, translationButton)
+	settings := container.New(layout.NewVBoxLayout(), providerSelect, apiKeyEntry)
 	settings.MinSize()
-	settingsContent := container.New(layout.NewCenterLayout(), settings)
+	settingsContent := container.New(layout.NewGridLayoutWithRows(2), settings, container.New(layout.NewCenterLayout(), translationButton))
 
 	ui := container.NewBorder(
 		header,
-		footer,
+		nil,
 		nil,
 		nil,
 		mainContent,
