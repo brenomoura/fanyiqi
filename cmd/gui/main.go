@@ -50,6 +50,8 @@ func main() {
 
 	settingsButton := widget.NewButtonWithIcon("Settings", theme.SettingsIcon(), func() {})
 
+	translationButton := widget.NewButtonWithIcon("Go back to transalation", theme.DocumentIcon(), func() {})
+
 	buttons := container.NewGridWithColumns(2, clearButton, settingsButton)
 
 	input.OnChanged = func(typedChar string) {
@@ -96,17 +98,22 @@ func main() {
 		outputView,
 	)
 
-	label1 := widget.NewLabel("Label 1")
-	value1 := widget.NewLabel("Value")
-	label2 := widget.NewLabel("Label 2")
-	value2 := widget.NewLabel("Something")
-	settingsContent := container.New(
-		layout.NewFormLayout(),
-		label1,
-		value1,
-		label2,
-		value2,
+	providerOptions := []string{"ChatGPT", "DeepL"}
+
+	providerSelect := views.NewCustomSelectEntry(views.CustomSelectEntryParams{
+		Window:  &window,
+		Options: providerOptions,
+	})
+
+	apiKeyEntry := views.NewCustomEntry(
+		&window,
+		"Insert here the API key from the selected provider...",
+		true,
 	)
+
+	settings := container.New(layout.NewVBoxLayout(), providerSelect, apiKeyEntry, translationButton)
+	settings.MinSize()
+	settingsContent := container.New(layout.NewCenterLayout(), settings)
 
 	ui := container.NewBorder(
 		header,
@@ -118,7 +125,11 @@ func main() {
 
 	settingsButton.OnTapped = func() {
 		ui.Objects[0] = settingsContent
-		println("test")
+		ui.Refresh()
+	}
+
+	translationButton.OnTapped = func() {
+		ui.Objects[0] = mainContent
 		ui.Refresh()
 	}
 
