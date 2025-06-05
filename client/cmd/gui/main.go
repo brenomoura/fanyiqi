@@ -95,7 +95,9 @@ func main() {
 		outputView,
 	)
 
-	providerOptions := []string{"ChatGPT", "DeepL"}
+	providerOptions := []string{"Mistral (La Plateforme)"}
+	//  SUBIR UMA VPS FREE
+	// E CHAMAR ESSA VPS
 
 	providerSelect := views.NewCustomSelectEntry(views.CustomSelectEntryParams{
 		Window:  &window,

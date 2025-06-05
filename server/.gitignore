@@ -1,6 +1,3 @@
-client/vendor/**
-client/dist/**
-
 # Python-generated files
 __pycache__/
 *.py[oc]
