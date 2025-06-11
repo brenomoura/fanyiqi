@@ -1,0 +1,295 @@
+[
+    {
+        "label": "runpy",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "runpy",
+        "description": "runpy",
+        "detail": "runpy",
+        "documentation": {}
+    },
+    {
+        "label": "annotations",
+        "importPath": "__future__",
+        "description": "__future__",
+        "isExtraImport": true,
+        "detail": "__future__",
+        "documentation": {}
+    },
+    {
+        "label": "os",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "os",
+        "description": "os",
+        "detail": "os",
+        "documentation": {}
+    },
+    {
+        "label": "site",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "site",
+        "description": "site",
+        "detail": "site",
+        "documentation": {}
+    },
+    {
+        "label": "sys",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "sys",
+        "description": "sys",
+        "detail": "sys",
+        "documentation": {}
+    },
+    {
+        "label": "BaseTranslationModel",
+        "importPath": "app.core.ai.base_model",
+        "description": "app.core.ai.base_model",
+        "isExtraImport": true,
+        "detail": "app.core.ai.base_model",
+        "documentation": {}
+    },
+    {
+        "label": "M2M100ForConditionalGeneration",
+        "importPath": "transformers",
+        "description": "transformers",
+        "isExtraImport": true,
+        "detail": "transformers",
+        "documentation": {}
+    },
+    {
+        "label": "M2M100Tokenizer",
+        "importPath": "transformers",
+        "description": "transformers",
+        "isExtraImport": true,
+        "detail": "transformers",
+        "documentation": {}
+    },
+    {
+        "label": "NotFoundLanguage",
+        "importPath": "app.core.ai.models.exceptions",
+        "description": "app.core.ai.models.exceptions",
+        "isExtraImport": true,
+        "detail": "app.core.ai.models.exceptions",
+        "documentation": {}
+    },
+    {
+        "label": "ABC",
+        "importPath": "abc",
+        "description": "abc",
+        "isExtraImport": true,
+        "detail": "abc",
+        "documentation": {}
+    },
+    {
+        "label": "abstractmethod",
+        "importPath": "abc",
+        "description": "abc",
+        "isExtraImport": true,
+        "detail": "abc",
+        "documentation": {}
+    },
+    {
+        "label": "List",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Tuple",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "List",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Tuple",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "MODELS",
+        "importPath": "app.core.ai.models",
+        "description": "app.core.ai.models",
+        "isExtraImport": true,
+        "detail": "app.core.ai.models",
+        "documentation": {}
+    },
+    {
+        "label": "time",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "time",
+        "description": "time",
+        "detail": "time",
+        "documentation": {}
+    },
+    {
+        "label": "TranslationService",
+        "importPath": "app.services.translation",
+        "description": "app.services.translation",
+        "isExtraImport": true,
+        "detail": "app.services.translation",
+        "documentation": {}
+    },
+    {
+        "label": "bin_dir",
+        "kind": 5,
+        "importPath": ".venv.bin.activate_this",
+        "description": ".venv.bin.activate_this",
+        "peekOfCode": "bin_dir = os.path.dirname(abs_file)\nbase = bin_dir[: -len(\"bin\") - 1]  # strip away the bin part from the __file__, plus the path separator\n# prepend bin to PATH (this file is inside the bin directory)\nos.environ[\"PATH\"] = os.pathsep.join([bin_dir, *os.environ.get(\"PATH\", \"\").split(os.pathsep)])\nos.environ[\"VIRTUAL_ENV\"] = base  # virtual env is right above bin directory\nos.environ[\"VIRTUAL_ENV_PROMPT\"] = \"server\" or os.path.basename(base)  # noqa: SIM222\n# add the virtual environments libraries to the host python import mechanism\nprev_length = len(sys.path)\nfor lib in \"../lib/python3.12/site-packages\".split(os.pathsep):\n    path = os.path.realpath(os.path.join(bin_dir, lib))",
+        "detail": ".venv.bin.activate_this",
+        "documentation": {}
+    },
+    {
+        "label": "base",
+        "kind": 5,
+        "importPath": ".venv.bin.activate_this",
+        "description": ".venv.bin.activate_this",
+        "peekOfCode": "base = bin_dir[: -len(\"bin\") - 1]  # strip away the bin part from the __file__, plus the path separator\n# prepend bin to PATH (this file is inside the bin directory)\nos.environ[\"PATH\"] = os.pathsep.join([bin_dir, *os.environ.get(\"PATH\", \"\").split(os.pathsep)])\nos.environ[\"VIRTUAL_ENV\"] = base  # virtual env is right above bin directory\nos.environ[\"VIRTUAL_ENV_PROMPT\"] = \"server\" or os.path.basename(base)  # noqa: SIM222\n# add the virtual environments libraries to the host python import mechanism\nprev_length = len(sys.path)\nfor lib in \"../lib/python3.12/site-packages\".split(os.pathsep):\n    path = os.path.realpath(os.path.join(bin_dir, lib))\n    site.addsitedir(path)",
+        "detail": ".venv.bin.activate_this",
+        "documentation": {}
+    },
+    {
+        "label": "os.environ[\"PATH\"]",
+        "kind": 5,
+        "importPath": ".venv.bin.activate_this",
+        "description": ".venv.bin.activate_this",
+        "peekOfCode": "os.environ[\"PATH\"] = os.pathsep.join([bin_dir, *os.environ.get(\"PATH\", \"\").split(os.pathsep)])\nos.environ[\"VIRTUAL_ENV\"] = base  # virtual env is right above bin directory\nos.environ[\"VIRTUAL_ENV_PROMPT\"] = \"server\" or os.path.basename(base)  # noqa: SIM222\n# add the virtual environments libraries to the host python import mechanism\nprev_length = len(sys.path)\nfor lib in \"../lib/python3.12/site-packages\".split(os.pathsep):\n    path = os.path.realpath(os.path.join(bin_dir, lib))\n    site.addsitedir(path)\nsys.path[:] = sys.path[prev_length:] + sys.path[0:prev_length]\nsys.real_prefix = sys.prefix",
+        "detail": ".venv.bin.activate_this",
+        "documentation": {}
+    },
+    {
+        "label": "os.environ[\"VIRTUAL_ENV\"]",
+        "kind": 5,
+        "importPath": ".venv.bin.activate_this",
+        "description": ".venv.bin.activate_this",
+        "peekOfCode": "os.environ[\"VIRTUAL_ENV\"] = base  # virtual env is right above bin directory\nos.environ[\"VIRTUAL_ENV_PROMPT\"] = \"server\" or os.path.basename(base)  # noqa: SIM222\n# add the virtual environments libraries to the host python import mechanism\nprev_length = len(sys.path)\nfor lib in \"../lib/python3.12/site-packages\".split(os.pathsep):\n    path = os.path.realpath(os.path.join(bin_dir, lib))\n    site.addsitedir(path)\nsys.path[:] = sys.path[prev_length:] + sys.path[0:prev_length]\nsys.real_prefix = sys.prefix\nsys.prefix = base",
+        "detail": ".venv.bin.activate_this",
+        "documentation": {}
+    },
+    {
+        "label": "os.environ[\"VIRTUAL_ENV_PROMPT\"]",
+        "kind": 5,
+        "importPath": ".venv.bin.activate_this",
+        "description": ".venv.bin.activate_this",
+        "peekOfCode": "os.environ[\"VIRTUAL_ENV_PROMPT\"] = \"server\" or os.path.basename(base)  # noqa: SIM222\n# add the virtual environments libraries to the host python import mechanism\nprev_length = len(sys.path)\nfor lib in \"../lib/python3.12/site-packages\".split(os.pathsep):\n    path = os.path.realpath(os.path.join(bin_dir, lib))\n    site.addsitedir(path)\nsys.path[:] = sys.path[prev_length:] + sys.path[0:prev_length]\nsys.real_prefix = sys.prefix\nsys.prefix = base",
+        "detail": ".venv.bin.activate_this",
+        "documentation": {}
+    },
+    {
+        "label": "prev_length",
+        "kind": 5,
+        "importPath": ".venv.bin.activate_this",
+        "description": ".venv.bin.activate_this",
+        "peekOfCode": "prev_length = len(sys.path)\nfor lib in \"../lib/python3.12/site-packages\".split(os.pathsep):\n    path = os.path.realpath(os.path.join(bin_dir, lib))\n    site.addsitedir(path)\nsys.path[:] = sys.path[prev_length:] + sys.path[0:prev_length]\nsys.real_prefix = sys.prefix\nsys.prefix = base",
+        "detail": ".venv.bin.activate_this",
+        "documentation": {}
+    },
+    {
+        "label": "sys.path[:]",
+        "kind": 5,
+        "importPath": ".venv.bin.activate_this",
+        "description": ".venv.bin.activate_this",
+        "peekOfCode": "sys.path[:] = sys.path[prev_length:] + sys.path[0:prev_length]\nsys.real_prefix = sys.prefix\nsys.prefix = base",
+        "detail": ".venv.bin.activate_this",
+        "documentation": {}
+    },
+    {
+        "label": "sys.real_prefix",
+        "kind": 5,
+        "importPath": ".venv.bin.activate_this",
+        "description": ".venv.bin.activate_this",
+        "peekOfCode": "sys.real_prefix = sys.prefix\nsys.prefix = base",
+        "detail": ".venv.bin.activate_this",
+        "documentation": {}
+    },
+    {
+        "label": "sys.prefix",
+        "kind": 5,
+        "importPath": ".venv.bin.activate_this",
+        "description": ".venv.bin.activate_this",
+        "peekOfCode": "sys.prefix = base",
+        "detail": ".venv.bin.activate_this",
+        "documentation": {}
+    },
+    {
+        "label": "NotFoundLanguage",
+        "kind": 6,
+        "importPath": "app.core.ai.models.exceptions",
+        "description": "app.core.ai.models.exceptions",
+        "peekOfCode": "class NotFoundLanguage(Exception): ...",
+        "detail": "app.core.ai.models.exceptions",
+        "documentation": {}
+    },
+    {
+        "label": "FacebookM2M100",
+        "kind": 6,
+        "importPath": "app.core.ai.models.facebook_m2m100_418M",
+        "description": "app.core.ai.models.facebook_m2m100_418M",
+        "peekOfCode": "class FacebookM2M100(BaseTranslationModel):\n    def __init__(self):\n        self.name = \"facebook/m2m100_418M\"\n        self.tensor = \"pt\"  # pt is not the lang, it is the TensorType\n    def get_model_name(self) -> str:\n        return self.name\n    def translate(self, text: str, source_lang: str, target_lang: str) -> str:\n        for lang in [source_lang, target_lang]:\n            self.validate_lang(lang)\n        model = M2M100ForConditionalGeneration.from_pretrained(self.name)",
+        "detail": "app.core.ai.models.facebook_m2m100_418M",
+        "documentation": {}
+    },
+    {
+        "label": "BaseTranslationModel",
+        "kind": 6,
+        "importPath": "app.core.ai.base_model",
+        "description": "app.core.ai.base_model",
+        "peekOfCode": "class BaseTranslationModel(ABC):\n    @abstractmethod\n    def get_model_name(self):\n        raise NotImplementedError\n    @abstractmethod\n    def get_languages(self) -> List[Tuple[str, str]]:\n        raise NotImplementedError\n    @abstractmethod\n    def translate(self, text: str, source_lang: str, target_lang: str) -> str:\n        raise NotImplementedError",
+        "detail": "app.core.ai.base_model",
+        "documentation": {}
+    },
+    {
+        "label": "NotFoundModelException",
+        "kind": 6,
+        "importPath": "app.services.translation",
+        "description": "app.services.translation",
+        "peekOfCode": "class NotFoundModelException(Exception): ...\nclass TransalationError(Exception): ...\nclass TranslationService:\n    def __init__(self, model_name: str):\n        model = MODELS.get(model_name)\n        if model is None:\n            raise NotFoundModelException\n        self.model = model()\n    def translate(self, text: str, source_lang: str, target_lang: str) -> str:\n        try:",
+        "detail": "app.services.translation",
+        "documentation": {}
+    },
+    {
+        "label": "TransalationError",
+        "kind": 6,
+        "importPath": "app.services.translation",
+        "description": "app.services.translation",
+        "peekOfCode": "class TransalationError(Exception): ...\nclass TranslationService:\n    def __init__(self, model_name: str):\n        model = MODELS.get(model_name)\n        if model is None:\n            raise NotFoundModelException\n        self.model = model()\n    def translate(self, text: str, source_lang: str, target_lang: str) -> str:\n        try:\n            return self.model.translate(text, source_lang, target_lang)",
+        "detail": "app.services.translation",
+        "documentation": {}
+    },
+    {
+        "label": "TranslationService",
+        "kind": 6,
+        "importPath": "app.services.translation",
+        "description": "app.services.translation",
+        "peekOfCode": "class TranslationService:\n    def __init__(self, model_name: str):\n        model = MODELS.get(model_name)\n        if model is None:\n            raise NotFoundModelException\n        self.model = model()\n    def translate(self, text: str, source_lang: str, target_lang: str) -> str:\n        try:\n            return self.model.translate(text, source_lang, target_lang)\n        except Exception:",
+        "detail": "app.services.translation",
+        "documentation": {}
+    },
+    {
+        "label": "main",
+        "kind": 2,
+        "importPath": "main",
+        "description": "main",
+        "peekOfCode": "def main():\n    start_time = time.time()\n    transalation_service = TranslationService(\"facebook/m2m100_418M\")\n    result = transalation_service.translate(\"Teste\", \"pt\", \"en\")\n    print(result)\n    print(f\"Time elapsed {time.time() - start_time:.2f} seconds\")\nif __name__ == \"__main__\":\n    main()",
+        "detail": "main",
+        "documentation": {}
+    }
+]
