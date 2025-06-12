@@ -1,6 +1,3 @@
-client/vendor/**
-client/dist/**
-
 # Python-generated files
 __pycache__/
 *.py[oc]
@@ -11,3 +8,12 @@ wheels/
 
 # Virtual environments
 .venv
+
+# env vars
+.env
+
+# ide stuff
+.vscode
+
+# go stuff
+vendor

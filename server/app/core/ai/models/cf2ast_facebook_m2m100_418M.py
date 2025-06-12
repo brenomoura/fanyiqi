@@ -1,13 +1,14 @@
+from huggingface_hub import snapshot_download
 from app.core.ai.base_model import BaseTranslationModel
-from transformers import M2M100ForConditionalGeneration, M2M100Tokenizer
+import ctranslate2
+import transformers
 from app.core.ai.models.exceptions import NotFoundLanguage
 
 
-class FacebookM2M100(BaseTranslationModel):
+class CF2FastM2M100(BaseTranslationModel):
     def __init__(self):
-        self.name = "facebook/m2m100_418M"
-        self.tensor = "pt"  # pt is not the lang, it is the TensorType
-        
+        self.ctranslate2_name = "m2m100_418M"
+        self.name = "michaelfeil/ct2fast-m2m100_418M"
 
     def get_model_name(self) -> str:
         return self.name
@@ -16,17 +17,19 @@ class FacebookM2M100(BaseTranslationModel):
         for lang in [source_lang, target_lang]:
             self.validate_lang(lang)
 
-        model = M2M100ForConditionalGeneration.from_pretrained(self.name)
-
-        tokenizer = M2M100Tokenizer.from_pretrained(self.name)
-
+        model_path = snapshot_download(self.name)
+        print(model_path)
+        translator = ctranslate2.Translator(model_path, compute_type="auto")
+        # Use the original HuggingFace model for the tokenizer
+        tokenizer = transformers.AutoTokenizer.from_pretrained("facebook/m2m100_418M")
         tokenizer.src_lang = source_lang
-        encoded = tokenizer(text, return_tensors=self.tensor)
 
-        generated = model.generate(
-            **encoded, forced_bos_token_id=tokenizer.get_lang_id(target_lang)
-        )
-        return tokenizer.decode(generated[0], skip_special_tokens=True)
+        source = tokenizer.convert_ids_to_tokens(tokenizer.encode(text))
+        target_prefix = [tokenizer.lang_code_to_token[target_lang]]
+        results = translator.translate_batch([source], target_prefix=[target_prefix])
+        target = results[0].hypotheses[0][1:]
+
+        return tokenizer.decode(tokenizer.convert_tokens_to_ids(target))
 
     def validate_lang(self, lang: str):
         """

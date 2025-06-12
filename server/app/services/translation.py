@@ -16,9 +16,9 @@ class TranslationService:
             raise NotFoundModelException
         self.model = model()
 
-    def translate(self, text: str, source_lang: str, target_lang: str) -> str:
+    def translate(self, text: str, source_language: str, target_language: str) -> str:
         try:
-            return self.model.translate(text, source_lang, target_lang)
+            return self.model.translate(text, source_language, target_language)
         except Exception:
             raise TransalationError
 
