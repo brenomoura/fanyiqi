@@ -1,12 +1,15 @@
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 
+from app.api.routes.shared import get_current_user
 from app.core.ai.models import MODELS
+from app.core.security import User
 from app.services.translation import TranslationService
+
 
 DEFAULT_TRANSLATION_MODEL = "michaelfeil/ct2fast-m2m100_418M"
 
-router = APIRouter(prefix="/translation", tags=["translation"])
+router = APIRouter(prefix="", tags=["translation"])
 
 
 class TranslationRequest(BaseModel):
@@ -20,13 +23,10 @@ class TranslationResponse(BaseModel):
     translated_text: str
 
 
-def get_translation_service_with_param(param):
-    return TranslationService(param)
-
-
-@router.post("/", response_model=TranslationResponse)
+@router.post("/translate", response_model=TranslationResponse)
 async def translate(
     request: TranslationRequest,
+    current_user: User = Depends(get_current_user),
 ):
     try:
         service = TranslationService(request.model)
@@ -42,10 +42,8 @@ async def translate(
 
 @router.get("/languages", response_model=list[tuple[str, str]])
 async def get_available_languages(
-    model: str = Query(
-        default=DEFAULT_TRANSLATION_MODEL,
-        description="Model parameter for TranslationService",
-    ),
+    model: str = Query(default=DEFAULT_TRANSLATION_MODEL),
+    current_user: User = Depends(get_current_user),
 ):
     try:
         service = TranslationService(model)
@@ -56,9 +54,8 @@ async def get_available_languages(
 
 
 @router.get("/models", response_model=list[str])
-async def get_available_models():
+async def get_available_models(current_user: User = Depends(get_current_user)):
     try:
-        models = [model for model, _ in MODELS.items()]
-        return models
+        return list(MODELS.keys())
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
