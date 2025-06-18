@@ -1,9 +1,10 @@
 package main
 
 import (
-	// "os"
 	"time"
 
+	"github.com/brenomoura/fanyiqi/internal/config"
+	"github.com/brenomoura/fanyiqi/internal/translator"
 	"github.com/brenomoura/fanyiqi/ui/utils"
 	"github.com/brenomoura/fanyiqi/ui/views"
 
@@ -18,7 +19,6 @@ import (
 )
 
 func main() {
-	// println(os.UserConfigDir())
 	err := clipboard.Init()
 	if err != nil {
 		panic(err)
@@ -47,9 +47,65 @@ func main() {
 
 	settingsButton := widget.NewButtonWithIcon("Settings", theme.SettingsIcon(), func() {})
 
-	translationButton := widget.NewButtonWithIcon("Go back to transalation", theme.DocumentIcon(), func() {})
+	translationButton := widget.NewButtonWithIcon("Translate!", theme.DocumentIcon(), func() {})
 
 	buttons := container.NewGridWithColumns(2, clearButton, settingsButton)
+
+	appConfig, err := config.LoadEncryptedConfig()
+	if err != nil {
+		window.Close()
+	}
+
+	println("Loaded config:", appConfig.APIKey, *appConfig.SourceLanguage, *appConfig.TargetLanguage)
+
+	apiKeyEntry := views.NewCustomEntry(
+		&window,
+		"Insert here the API key from provider...",
+		true,
+	)
+
+	saveAPIKeyButton := widget.NewButtonWithIcon("Save API Key", theme.DocumentSaveIcon(), func() {})
+	settingsButtons := container.NewGridWithColumns(2, translationButton, saveAPIKeyButton)
+	settingsContent := container.New(layout.NewGridLayoutWithRows(2), apiKeyEntry, container.New(layout.NewCenterLayout(), settingsButtons))
+
+	ui := container.NewBorder(
+		header,
+		nil,
+		nil,
+		nil,
+		settingsContent,
+	)
+
+	saveAPIKeyButton.OnTapped = func() {
+		apiKey := apiKeyEntry.Text
+		if len(apiKey) == 0 {
+			apiKeyEntry.SetPlaceHolder("Please type your API Key before saving it.")
+			apiKeyEntry.Refresh()
+			return
+		}
+		appConfig.APIKey = apiKey
+		config.SaveEncryptedConfig(*appConfig)
+		apiKeyEntry.Text = ""
+		apiKeyEntry.SetPlaceHolder("API Key saved successfully! You can change it anytime by typing the new key and click 'Save API Key'.")
+		apiKeyEntry.Refresh()
+	}
+
+	if appConfig.APIKey == "" {
+		window.SetContent(ui)
+		window.Canvas().Focus(input)
+		utils.Close(window)
+		window.ShowAndRun()
+		return
+	}
+
+	if appConfig != nil && appConfig.APIKey != "" {
+		apiKeyEntry.SetPlaceHolder("API Key already set. To overwrite, type the new key and click 'Save API Key'.")
+	}
+
+	translatorService := translator.NewTranslatorService(
+		"http://localhost:8000/api/v1",
+		appConfig.APIKey,
+	)
 
 	input.OnChanged = func(typedChar string) {
 		output.Text = ""
@@ -59,7 +115,22 @@ func main() {
 			time.Sleep(time.Millisecond * 1000)
 			loading.SetLoading(false)
 			fyne.Do(func() {
-				output.Text = typedChar
+				result, err := translatorService.Translate(translator.TranslationParams{
+					Text:           typedChar,
+					SourceLanguage: *appConfig.SourceLanguage,
+					TargetLanguage: *appConfig.TargetLanguage,
+				})
+				if err != nil {
+					// add some dialog to show the error
+					// add logs
+					println("Error translating text:", err)
+					return
+				}
+				if result.TranslatedText == "" {
+					println("Received empty translation result")
+					return
+				}
+				output.Text = result.TranslatedText
 				output.Refresh()
 			})
 		}()
@@ -74,17 +145,79 @@ func main() {
 		}
 	}
 
-	options := []string{"Português", "Inglês"}
+	langsOptions, err := translatorService.GetLanguages()
+	if err != nil {
+		// add some dialog to show the error
+		// add logs
+		println("Error fetching languages:", err)
+	}
+
+	options := make([]string, 0, len(langsOptions))
+	for _, lang := range langsOptions {
+		options = append(options, lang[0])
+	}
 
 	inputSelectEntry := views.NewCustomSelectEntry(views.CustomSelectEntryParams{
 		Window:  &window,
 		Options: options,
 	})
 
+	if appConfig != nil && appConfig.SourceLanguage != nil {
+		for _, lang := range langsOptions {
+			if lang[1] == *appConfig.SourceLanguage {
+				inputSelectEntry.SetSelected(lang[0])
+				inputSelectEntry.Refresh()
+				break
+			}
+		}
+	}
+
+	inputSelectEntry.OnChanged = func(selectedOption string) {
+		if selectedOption == "" {
+			return
+		}
+		var selectedLang string
+		for _, lang := range langsOptions {
+			if lang[0] == selectedOption {
+				selectedLang = lang[1]
+				break
+			}
+		}
+		appConfig.SourceLanguage = &selectedLang
+		config.SaveEncryptedConfig(*appConfig)
+		inputSelectEntry.Refresh()
+	}
+
 	outputSelectEntry := views.NewCustomSelectEntry(views.CustomSelectEntryParams{
 		Window:  &window,
 		Options: options,
 	})
+
+	if appConfig != nil && appConfig.TargetLanguage != nil {
+		for _, lang := range langsOptions {
+			if lang[1] == *appConfig.TargetLanguage {
+				outputSelectEntry.SetSelected(lang[0])
+				outputSelectEntry.Refresh()
+				break
+			}
+		}
+	}
+
+	outputSelectEntry.OnChanged = func(selectedOption string) {
+		if selectedOption == "" {
+			return
+		}
+		var selectedLang string
+		for _, lang := range langsOptions {
+			if lang[0] == selectedOption {
+				selectedLang = lang[1]
+				break
+			}
+		}
+		appConfig.TargetLanguage = &selectedLang
+		config.SaveEncryptedConfig(*appConfig)
+		outputSelectEntry.Refresh()
+	}
 
 	inputView := container.NewBorder(inputSelectEntry, buttons, nil, nil, input)
 	outputView := container.NewBorder(outputSelectEntry, nil, nil, nil, outputStack)
@@ -95,32 +228,9 @@ func main() {
 		outputView,
 	)
 
-	providerOptions := []string{"Mistral (La Plateforme)"}
-	//  SUBIR UMA VPS FREE
-	// E CHAMAR ESSA VPS
-
-	providerSelect := views.NewCustomSelectEntry(views.CustomSelectEntryParams{
-		Window:  &window,
-		Options: providerOptions,
-	})
-
-	apiKeyEntry := views.NewCustomEntry(
-		&window,
-		"Insert here the API key from the selected provider...",
-		true,
-	)
-
-	settings := container.New(layout.NewVBoxLayout(), providerSelect, apiKeyEntry)
-	settings.MinSize()
-	settingsContent := container.New(layout.NewGridLayoutWithRows(2), settings, container.New(layout.NewCenterLayout(), translationButton))
-
-	ui := container.NewBorder(
-		header,
-		nil,
-		nil,
-		nil,
-		mainContent,
-	)
+	if appConfig.APIKey == "" {
+		ui.Objects[0] = mainContent
+	}
 
 	settingsButton.OnTapped = func() {
 		ui.Objects[0] = settingsContent
