@@ -5,14 +5,14 @@ import (
 	"fyne.io/fyne/v2/widget"
 )
 
-type customInput struct {
+type CustomInput struct {
 	widget.Entry
 	fyne.Tabbable
 	window *fyne.Window
 }
 
-func NewInput(window *fyne.Window) *customInput {
-	entry := &customInput{}
+func NewInput(window *fyne.Window) *CustomInput {
+	entry := &CustomInput{}
 	entry.ExtendBaseWidget(entry)
 	entry.MultiLine = true
 	entry.Wrapping = fyne.TextWrapBreak
@@ -22,21 +22,21 @@ func NewInput(window *fyne.Window) *customInput {
 	return entry
 }
 
-func (e *customInput) setWindow(window *fyne.Window) {
+func (e *CustomInput) setWindow(window *fyne.Window) {
 	e.window = window
 }
 
-func (e *customInput) onEscape() {
+func (e *CustomInput) onEscape() {
 	if e.window != nil {
 		(*e.window).Close()
 	}
 }
 
-func (e *customInput) AcceptsTab() bool {
+func (e *CustomInput) AcceptsTab() bool {
 	return false
 }
 
-func (e *customInput) KeyDown(key *fyne.KeyEvent) {
+func (e *CustomInput) KeyDown(key *fyne.KeyEvent) {
 	switch key.Name {
 	case fyne.KeyEscape:
 		e.onEscape()

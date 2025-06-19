@@ -18,232 +18,366 @@ import (
 	"golang.design/x/clipboard"
 )
 
+type Application struct {
+	app               fyne.App
+	window            fyne.Window
+	config            *config.Config
+	translator        *translator.TranslatorService
+	ui                *fyne.Container
+	mainContent       *fyne.Container
+	settingsContent   *fyne.Container
+	input             *views.CustomInput
+	output            *views.CustomOutput
+	loading           *views.Loading
+	apiKeyEntry       *views.CustomEntry
+	inputSelectEntry  *views.CustomSelect
+	outputSelectEntry *views.CustomSelect
+	inputView         fyne.CanvasObject
+	outputView        fyne.CanvasObject
+	languageOptions   [][]string
+}
+
 func main() {
-	err := clipboard.Init()
-	if err != nil {
+	app := &Application{}
+	app.initialize()
+	app.run()
+}
+
+func (a *Application) initialize() {
+	a.initClipboard()
+	a.createAppWindow()
+	a.loadConfig()
+	a.setupUIComponents()
+}
+
+func (a *Application) run() {
+	a.window.Canvas().Focus(a.input)
+	utils.Close(a.window)
+	a.window.ShowAndRun()
+}
+
+func (a *Application) initClipboard() {
+	if err := clipboard.Init(); err != nil {
 		panic(err)
 	}
+}
 
-	app := app.New()
-	window := app.NewWindow("fanyiqi")
-	app.Settings().SetTheme(&views.CustomTheme{Theme: theme.DefaultTheme()})
-	window.Resize(utils.SetWindowSize())
-	window.CenterOnScreen()
+func (a *Application) createAppWindow() {
+	a.app = app.New()
+	a.window = a.app.NewWindow("fanyiqi")
+	a.app.Settings().SetTheme(&views.CustomTheme{Theme: theme.DefaultTheme()})
+	a.window.Resize(utils.SetWindowSize())
+	a.window.CenterOnScreen()
+}
+
+func (a *Application) loadConfig() {
+	cfg, err := config.LoadEncryptedConfig()
+	if err != nil {
+		a.window.Close()
+	}
+	a.config = cfg
+}
+
+func (a *Application) setupUIComponents() {
+	a.setupHeader()
+	a.setupSettingsUI()
+	a.setupTranslatorService()
+	a.setupLanguageSelection()
+	a.setupMainUI()
+	a.setupEventHandlers()
+	a.setupClipboardIntegration()
+	a.setupUI()
+}
+
+func (a *Application) setupHeader() *canvas.Text {
 	header := canvas.NewText("fanyiqi", theme.Color(theme.ColorNamePrimary))
 	header.TextSize = 25
+	return header
+}
 
-	input := views.NewInput(&window)
-	output := views.NewOutput(&window)
+func (a *Application) setupMainUI() {
+	a.input = views.NewInput(&a.window)
+	a.output = views.NewOutput(&a.window)
+	a.loading = views.NewLoading()
+	outputStack := container.New(layout.NewStackLayout(), a.output, a.loading.Container)
 
-	loading := views.NewLoading()
-	outputStack := container.New(layout.NewStackLayout(), output, loading.Container)
+	clearButton := widget.NewButtonWithIcon("Clear (Ctrl + PQP)", theme.ContentClearIcon(), a.handleClear)
+	settingsButton := widget.NewButtonWithIcon("Settings", theme.SettingsIcon(), a.handleSettingsButton)
+	swapLanguagesButton := widget.NewButtonWithIcon("Swap", theme.ViewRefreshIcon(), a.handleSwapLanguagesButton)
+	buttons := container.NewGridWithColumns(3, clearButton, settingsButton, swapLanguagesButton)
 
-	clearButton := widget.NewButtonWithIcon("Clear input text (Ctrl + PQP)", theme.ContentClearIcon(), func() {
-		input.Text = ""
-		input.Refresh()
-		output.Text = ""
-		output.Refresh()
-	})
+	inputSelect := a.inputSelectEntry
+	outputSelect := a.outputSelectEntry
 
-	settingsButton := widget.NewButtonWithIcon("Settings", theme.SettingsIcon(), func() {})
+	a.inputView = container.NewBorder(inputSelect, buttons, nil, nil, a.input)
+	a.outputView = container.NewBorder(outputSelect, nil, nil, nil, outputStack)
 
-	translationButton := widget.NewButtonWithIcon("Translate!", theme.DocumentIcon(), func() {})
+	a.mainContent = container.NewGridWithColumns(2, a.inputView, a.outputView)
+}
 
-	buttons := container.NewGridWithColumns(2, clearButton, settingsButton)
-
-	appConfig, err := config.LoadEncryptedConfig()
-	if err != nil {
-		window.Close()
-	}
-
-	println("Loaded config:", appConfig.APIKey, *appConfig.SourceLanguage, *appConfig.TargetLanguage)
-
-	apiKeyEntry := views.NewCustomEntry(
-		&window,
-		"Insert here the API key from provider...",
+func (a *Application) setupSettingsUI() {
+	a.apiKeyEntry = views.NewCustomEntry(
+		&a.window,
+		"Insert here the API key from the provider...",
 		true,
 	)
 
-	saveAPIKeyButton := widget.NewButtonWithIcon("Save API Key", theme.DocumentSaveIcon(), func() {})
-	settingsButtons := container.NewGridWithColumns(2, translationButton, saveAPIKeyButton)
-	settingsContent := container.New(layout.NewGridLayoutWithRows(2), apiKeyEntry, container.New(layout.NewCenterLayout(), settingsButtons))
-
-	ui := container.NewBorder(
-		header,
-		nil,
-		nil,
-		nil,
-		settingsContent,
-	)
-
-	saveAPIKeyButton.OnTapped = func() {
-		apiKey := apiKeyEntry.Text
-		if len(apiKey) == 0 {
-			apiKeyEntry.SetPlaceHolder("Please type your API Key before saving it.")
-			apiKeyEntry.Refresh()
-			return
-		}
-		appConfig.APIKey = apiKey
-		config.SaveEncryptedConfig(*appConfig)
-		apiKeyEntry.Text = ""
-		apiKeyEntry.SetPlaceHolder("API Key saved successfully! You can change it anytime by typing the new key and click 'Save API Key'.")
-		apiKeyEntry.Refresh()
+	if a.config != nil && a.config.APIKey != "" {
+		a.apiKeyEntry.SetPlaceHolder("API Key already set. To overwrite, type the new key and click 'Save API Key'.")
 	}
 
-	if appConfig.APIKey == "" {
-		window.SetContent(ui)
-		window.Canvas().Focus(input)
-		utils.Close(window)
-		window.ShowAndRun()
+	translationButton := widget.NewButtonWithIcon("Translate!", theme.DocumentIcon(), a.handleReturnButton)
+	saveAPIKeyButton := widget.NewButtonWithIcon("Save API Key", theme.DocumentSaveIcon(), a.saveAPIKey)
+	settingsButtons := container.NewGridWithColumns(2, translationButton, saveAPIKeyButton)
+	a.settingsContent = container.New(layout.NewGridLayoutWithRows(2), a.apiKeyEntry, container.New(layout.NewCenterLayout(), settingsButtons))
+}
+
+func (a *Application) setupUI() {
+	a.ui = container.NewBorder(
+		a.setupHeader(),
+		nil,
+		nil,
+		nil,
+		a.settingsContent,
+	)
+
+	if a.config.APIKey != "" {
+		a.ui.Objects[0] = a.mainContent
+	}
+	a.window.SetContent(a.ui)
+}
+
+func (a *Application) setupEventHandlers() {
+	a.input.OnChanged = a.handleInputChanged
+}
+
+func (a *Application) setupTranslatorService() {
+	a.translator = translator.NewTranslatorService(
+		"http://localhost:8000/api/v1",
+		a.config.APIKey,
+	)
+}
+
+func (a *Application) getLanguages() ([][]string, error) {
+	if a.config.APIKey == "" {
+		return [][]string{}, nil
+	}
+	if len(a.languageOptions) > 0 {
+		return a.languageOptions, nil
+	}
+
+	languages, err := a.translator.GetLanguages()
+	if err != nil {
+		println("Error fetching languages:", err)
+		return nil, err
+	}
+
+	return languages, nil
+}
+
+func (a *Application) getSelectOptions() []string {
+	if len(a.languageOptions) == 0 {
+		return nil
+	}
+
+	options := make([]string, 0, len(a.languageOptions))
+	for _, lang := range a.languageOptions {
+		options = append(options, lang[0])
+	}
+	return options
+}
+
+func (a *Application) setupLanguageSelection() {
+	var options []string
+	langsOptions, err := a.getLanguages()
+	if err != nil {
+		println("Error setting up language selection:", err)
+		return
+	}
+	a.languageOptions = langsOptions
+	options = a.getSelectOptions()
+	a.setupInputSelect(options, a.languageOptions)
+	a.setupOutputSelect(options, a.languageOptions)
+}
+
+func (a *Application) setupInputSelect(options []string, langsOptions [][]string) {
+	a.inputSelectEntry = views.NewCustomSelectEntry(views.CustomSelectEntryParams{
+		Window:  &a.window,
+		Options: options,
+	})
+
+	if a.config.SourceLanguage != nil {
+		a.setSelectedLanguage(a.inputSelectEntry, langsOptions, *a.config.SourceLanguage)
+	}
+
+	a.inputSelectEntry.OnChanged = a.createLanguageChangeHandler("SourceLanguage", a.config)
+}
+
+func (a *Application) setupOutputSelect(options []string, langsOptions [][]string) {
+	a.outputSelectEntry = views.NewCustomSelectEntry(views.CustomSelectEntryParams{
+		Window:  &a.window,
+		Options: options,
+	})
+
+	if a.config.TargetLanguage != nil {
+		a.setSelectedLanguage(a.outputSelectEntry, langsOptions, *a.config.TargetLanguage)
+	}
+
+	a.outputSelectEntry.OnChanged = a.createLanguageChangeHandler("TargetLanguage", a.config)
+}
+
+func (a *Application) setSelectedLanguage(selectEntry *views.CustomSelect, langsOptions [][]string, langCode string) {
+	for _, lang := range langsOptions {
+		if lang[1] == langCode {
+			selectEntry.SetSelected(lang[0])
+			selectEntry.Refresh()
+			break
+		}
+	}
+}
+
+func (a *Application) createLanguageChangeHandler(field string, configStruct *config.Config) func(string) {
+	return func(selectedOption string) {
+		if selectedOption == "" {
+			return
+		}
+
+		selectedLang := ""
+		for _, lang := range a.languageOptions {
+			if lang[0] == selectedOption {
+				selectedLang = lang[1]
+				break
+			}
+		}
+		switch field {
+		case "SourceLanguage":
+			configStruct.SourceLanguage = &selectedLang
+		case "TargetLanguage":
+			configStruct.TargetLanguage = &selectedLang
+		}
+		config.SaveEncryptedConfig(*configStruct)
+	}
+}
+
+func (a *Application) setupClipboardIntegration() {
+	clipboardBytes := clipboard.Read(clipboard.FmtText)
+	if clipboardBytes == nil {
 		return
 	}
 
-	if appConfig != nil && appConfig.APIKey != "" {
-		apiKeyEntry.SetPlaceHolder("API Key already set. To overwrite, type the new key and click 'Save API Key'.")
+	clipboardText := string(clipboardBytes)
+	if len(clipboardText) > 0 {
+		a.input.Text = clipboardText
+		a.input.OnChanged(a.input.Text)
+	}
+}
+
+func (a *Application) handleClear() {
+	a.input.Text = ""
+	a.input.Refresh()
+	a.output.Text = ""
+	a.output.Refresh()
+}
+
+func (a *Application) handleSettingsButton() {
+	a.ui.Objects[0] = a.settingsContent
+	a.ui.Refresh()
+}
+
+func (a *Application) handleSwapLanguagesButton() {
+	if a.config.SourceLanguage == nil || a.config.TargetLanguage == nil {
+		println("Source or target language is not set.")
+		return
 	}
 
-	translatorService := translator.NewTranslatorService(
-		"http://localhost:8000/api/v1",
-		appConfig.APIKey,
-	)
+	a.config.SourceLanguage, a.config.TargetLanguage = a.config.TargetLanguage, a.config.SourceLanguage
 
-	input.OnChanged = func(typedChar string) {
-		output.Text = ""
-		output.Refresh()
-		loading.SetLoading(true)
-		go func() {
-			time.Sleep(time.Millisecond * 1000)
-			loading.SetLoading(false)
-			fyne.Do(func() {
-				result, err := translatorService.Translate(translator.TranslationParams{
-					Text:           typedChar,
-					SourceLanguage: *appConfig.SourceLanguage,
-					TargetLanguage: *appConfig.TargetLanguage,
-				})
-				if err != nil {
-					// add some dialog to show the error
-					// add logs
-					println("Error translating text:", err)
-					return
-				}
-				if result.TranslatedText == "" {
-					println("Received empty translation result")
-					return
-				}
-				output.Text = result.TranslatedText
-				output.Refresh()
+	config.SaveEncryptedConfig(*a.config)
+
+	selectedInput, selectedOutput := "", ""
+	for _, lang := range a.languageOptions {
+		if lang[1] == *a.config.SourceLanguage {
+			selectedInput = lang[0]
+		}
+		if lang[1] == *a.config.TargetLanguage {
+			selectedOutput = lang[0]
+		}
+	}
+
+	a.inputSelectEntry.SetSelected(selectedInput)
+	a.outputSelectEntry.SetSelected(selectedOutput)
+
+	a.inputSelectEntry.Refresh()
+	a.outputSelectEntry.Refresh()
+	a.input.OnChanged(a.input.Text)
+}
+
+func (a *Application) handleReturnButton() {
+	a.ui.Objects[0] = a.mainContent
+	a.ui.Refresh()
+	if len(a.languageOptions) == 0 {
+		a.setupTranslatorService()
+		langs, err := a.getLanguages()
+		if err != nil {
+			println("Error fetching languages:", err)
+			return
+		}
+		a.languageOptions = langs
+		options := a.getSelectOptions()
+		a.inputSelectEntry.SetOptions(options)
+		a.outputSelectEntry.SetOptions(options)
+		a.inputSelectEntry.Refresh()
+		a.outputSelectEntry.Refresh()
+	}
+}
+
+func (a *Application) saveAPIKey() {
+	apiKey := a.apiKeyEntry.Text
+	if apiKey == "" {
+		a.apiKeyEntry.SetPlaceHolder("Please type your API Key before saving it.")
+		a.apiKeyEntry.Refresh()
+		return
+	}
+
+	a.config.APIKey = apiKey
+	config.SaveEncryptedConfig(*a.config)
+
+	a.apiKeyEntry.Text = ""
+	a.apiKeyEntry.SetPlaceHolder("API Key saved successfully! You can change it anytime by typing the new key and click 'Save API Key'.")
+	a.apiKeyEntry.Refresh()
+}
+
+func (a *Application) handleInputChanged(typedChar string) {
+	a.output.Text = ""
+	a.output.Refresh()
+	a.loading.SetLoading(true)
+
+	go func() {
+		time.Sleep(time.Millisecond * 1000)
+		a.loading.SetLoading(false)
+
+		fyne.Do(func() {
+			if typedChar == "" || a.config.SourceLanguage == nil || a.config.TargetLanguage == nil {
+				return
+			}
+			result, err := a.translator.Translate(translator.TranslationParams{
+				Text:           typedChar,
+				SourceLanguage: *a.config.SourceLanguage,
+				TargetLanguage: *a.config.TargetLanguage,
 			})
-		}()
-	}
 
-	clipboardBytes := clipboard.Read(clipboard.FmtText)
-	if clipboardBytes != nil {
-		clipboardText := string(clipboard.Read(clipboard.FmtText))
-		if len(clipboardText) > 0 {
-			input.Text = clipboardText
-			input.OnChanged(input.Text)
-		}
-	}
-
-	langsOptions, err := translatorService.GetLanguages()
-	if err != nil {
-		// add some dialog to show the error
-		// add logs
-		println("Error fetching languages:", err)
-	}
-
-	options := make([]string, 0, len(langsOptions))
-	for _, lang := range langsOptions {
-		options = append(options, lang[0])
-	}
-
-	inputSelectEntry := views.NewCustomSelectEntry(views.CustomSelectEntryParams{
-		Window:  &window,
-		Options: options,
-	})
-
-	if appConfig != nil && appConfig.SourceLanguage != nil {
-		for _, lang := range langsOptions {
-			if lang[1] == *appConfig.SourceLanguage {
-				inputSelectEntry.SetSelected(lang[0])
-				inputSelectEntry.Refresh()
-				break
+			if err != nil {
+				println("Error translating text:", err)
+				return
 			}
-		}
-	}
 
-	inputSelectEntry.OnChanged = func(selectedOption string) {
-		if selectedOption == "" {
-			return
-		}
-		var selectedLang string
-		for _, lang := range langsOptions {
-			if lang[0] == selectedOption {
-				selectedLang = lang[1]
-				break
+			if result.TranslatedText == "" {
+				println("Received empty translation result")
+				return
 			}
-		}
-		appConfig.SourceLanguage = &selectedLang
-		config.SaveEncryptedConfig(*appConfig)
-		inputSelectEntry.Refresh()
-	}
 
-	outputSelectEntry := views.NewCustomSelectEntry(views.CustomSelectEntryParams{
-		Window:  &window,
-		Options: options,
-	})
-
-	if appConfig != nil && appConfig.TargetLanguage != nil {
-		for _, lang := range langsOptions {
-			if lang[1] == *appConfig.TargetLanguage {
-				outputSelectEntry.SetSelected(lang[0])
-				outputSelectEntry.Refresh()
-				break
-			}
-		}
-	}
-
-	outputSelectEntry.OnChanged = func(selectedOption string) {
-		if selectedOption == "" {
-			return
-		}
-		var selectedLang string
-		for _, lang := range langsOptions {
-			if lang[0] == selectedOption {
-				selectedLang = lang[1]
-				break
-			}
-		}
-		appConfig.TargetLanguage = &selectedLang
-		config.SaveEncryptedConfig(*appConfig)
-		outputSelectEntry.Refresh()
-	}
-
-	inputView := container.NewBorder(inputSelectEntry, buttons, nil, nil, input)
-	outputView := container.NewBorder(outputSelectEntry, nil, nil, nil, outputStack)
-
-	mainContent := container.NewGridWithColumns(
-		2,
-		inputView,
-		outputView,
-	)
-
-	if appConfig.APIKey == "" {
-		ui.Objects[0] = mainContent
-	}
-
-	settingsButton.OnTapped = func() {
-		ui.Objects[0] = settingsContent
-		ui.Refresh()
-	}
-
-	translationButton.OnTapped = func() {
-		ui.Objects[0] = mainContent
-		ui.Refresh()
-	}
-
-	window.SetContent(ui)
-	window.Canvas().Focus(input)
-	utils.Close(window)
-	window.ShowAndRun()
+			a.output.Text = result.TranslatedText
+			a.output.Refresh()
+		})
+	}()
 }

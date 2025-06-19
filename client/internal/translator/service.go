@@ -8,7 +8,7 @@ type TranslationParams struct {
 	Text           string `json:"text"`
 	SourceLanguage string `json:"source_language"`
 	TargetLanguage string `json:"target_language"`
-	Model          string `json:"model"`
+	Model          string `json:"model,omitempty"`
 }
 
 type TranslationResult struct {
