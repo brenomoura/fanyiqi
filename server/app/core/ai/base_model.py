@@ -9,6 +9,7 @@ class BaseTranslationModel(ABC):
 
     @abstractmethod
     def get_languages(self) -> List[Tuple[str, str]]:
+        """Returns a list of tuples with language names and their codes in the format [(name, code), ...]"""
         raise NotImplementedError
     
     @abstractmethod

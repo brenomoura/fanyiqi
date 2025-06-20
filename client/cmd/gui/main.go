@@ -1,6 +1,7 @@
 package main
 
 import (
+	"os"
 	"time"
 
 	"github.com/brenomoura/fanyiqi/internal/config"
@@ -35,6 +36,7 @@ type Application struct {
 	inputView         fyne.CanvasObject
 	outputView        fyne.CanvasObject
 	languageOptions   [][]string
+	debounceTimer     *time.Timer
 }
 
 func main() {
@@ -103,7 +105,7 @@ func (a *Application) setupMainUI() {
 
 	clearButton := widget.NewButtonWithIcon("Clear (Ctrl + PQP)", theme.ContentClearIcon(), a.handleClear)
 	settingsButton := widget.NewButtonWithIcon("Settings", theme.SettingsIcon(), a.handleSettingsButton)
-	swapLanguagesButton := widget.NewButtonWithIcon("Swap", theme.ViewRefreshIcon(), a.handleSwapLanguagesButton)
+	swapLanguagesButton := widget.NewButtonWithIcon("Swap Languages", theme.ViewRefreshIcon(), a.handleSwapLanguagesButton)
 	buttons := container.NewGridWithColumns(3, clearButton, settingsButton, swapLanguagesButton)
 
 	inputSelect := a.inputSelectEntry
@@ -152,8 +154,12 @@ func (a *Application) setupEventHandlers() {
 }
 
 func (a *Application) setupTranslatorService() {
+	apiURL := os.Getenv("FANYIQI_API_URL")
+	if apiURL == "" {
+		apiURL = "http://localhost:8000/api/v1"
+	}
 	a.translator = translator.NewTranslatorService(
-		"http://localhost:8000/api/v1",
+		apiURL,
 		a.config.APIKey,
 	)
 }
@@ -348,36 +354,39 @@ func (a *Application) saveAPIKey() {
 }
 
 func (a *Application) handleInputChanged(typedChar string) {
+	if typedChar == "" || a.config.SourceLanguage == nil || a.config.TargetLanguage == nil {
+		a.output.Text = ""
+		a.output.Refresh()
+		return
+	}
+
+	if a.debounceTimer != nil {
+		a.debounceTimer.Stop()
+	}
+
 	a.output.Text = ""
+	a.output.SetPlaceHolder("")
 	a.output.Refresh()
-	a.loading.SetLoading(true)
-
-	go func() {
-		time.Sleep(time.Millisecond * 1000)
-		a.loading.SetLoading(false)
-
-		fyne.Do(func() {
-			if typedChar == "" || a.config.SourceLanguage == nil || a.config.TargetLanguage == nil {
-				return
-			}
-			result, err := a.translator.Translate(translator.TranslationParams{
-				Text:           typedChar,
-				SourceLanguage: *a.config.SourceLanguage,
-				TargetLanguage: *a.config.TargetLanguage,
-			})
-
-			if err != nil {
-				println("Error translating text:", err)
-				return
-			}
-
-			if result.TranslatedText == "" {
-				println("Received empty translation result")
-				return
-			}
-
-			a.output.Text = result.TranslatedText
-			a.output.Refresh()
+	a.debounceTimer = time.AfterFunc(500*time.Millisecond, func() {
+		a.loading.SetLoading(true)
+		result, err := a.translator.Translate(translator.TranslationParams{
+			Text:           typedChar,
+			SourceLanguage: *a.config.SourceLanguage,
+			TargetLanguage: *a.config.TargetLanguage,
 		})
-	}()
+
+		if err != nil {
+			a.output.Text = ""
+			a.output.SetPlaceHolder("Error translating text")
+			a.loading.SetLoading(false)
+			return
+		}
+
+		a.output.Text = result.TranslatedText
+		fyne.Do(func() {
+			a.output.Refresh()
+			a.loading.SetLoading(false)
+		})
+	})
+
 }

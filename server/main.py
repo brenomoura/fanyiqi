@@ -6,6 +6,7 @@ from fastapi.routing import APIRoute
 from app.core.config import settings
 from app.services.translation import TranslationService
 from app.api.routes import routes
+import logging
 
 
 def main():
@@ -22,6 +23,8 @@ def main():
 def custom_generate_unique_id(route: APIRoute) -> str:
     return f"{route.tags[0]}-{route.name}"
 
+
+logging.basicConfig(level=logging.DEBUG)
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
