@@ -17,3 +17,6 @@ wheels/
 
 # go stuff
 vendor
+
+# sqlite db
+app.db
