@@ -19,4 +19,5 @@ wheels/
 vendor
 
 # sqlite db
+server/data/*.db
 app.db
