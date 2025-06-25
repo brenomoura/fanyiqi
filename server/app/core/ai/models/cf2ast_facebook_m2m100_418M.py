@@ -1,14 +1,18 @@
-from huggingface_hub import snapshot_download
-from app.core.ai.base_model import BaseTranslationModel
+import os
+
 import ctranslate2
 import transformers
+from huggingface_hub import snapshot_download
+
+from app.core.ai.base_model import BaseTranslationModel
 from app.core.ai.models.exceptions import NotFoundLanguage
+from app.core.config import settings
 
 
 class CF2FastM2M100(BaseTranslationModel):
     def __init__(self):
-        self.ctranslate2_name = "m2m100_418M"
         self.name = "michaelfeil/ct2fast-m2m100_418M"
+        self.cache_dir = os.path.join(settings.BASE_MODEL_PATH, "ct2fast_m2m100_418M")
 
     def get_model_name(self) -> str:
         return self.name
@@ -17,11 +21,12 @@ class CF2FastM2M100(BaseTranslationModel):
         for lang in [source_lang, target_lang]:
             self.validate_lang(lang)
 
-        model_path = snapshot_download(self.name)
-        print(model_path)
+        model_path = snapshot_download(self.name, cache_dir=self.cache_dir)
         translator = ctranslate2.Translator(model_path, compute_type="auto")
-        # Use the original HuggingFace model for the tokenizer
-        tokenizer = transformers.AutoTokenizer.from_pretrained("facebook/m2m100_418M")
+
+        tokenizer = transformers.AutoTokenizer.from_pretrained(
+            "facebook/m2m100_418M", cache_dir=self.cache_dir
+        )
         tokenizer.src_lang = source_lang
 
         source = tokenizer.convert_ids_to_tokens(tokenizer.encode(text))

@@ -21,3 +21,6 @@ vendor
 # sqlite db
 server/data/*.db
 app.db
+
+# models
+server/data/models

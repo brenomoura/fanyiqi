@@ -28,6 +28,8 @@ ENV PATH="/app/.venv/bin:$PATH"
 
 RUN chmod +x /app/scripts/generate_db.sh && /app/scripts/generate_db.sh
 
+RUN python3 /app/scripts/download_models.py
+
 EXPOSE 8000
 
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]

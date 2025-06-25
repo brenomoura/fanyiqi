@@ -6,8 +6,8 @@ from app.core.ai.models import MODELS
 from app.core.security import User
 from app.services.translation import TranslationService
 
-
 DEFAULT_TRANSLATION_MODEL = "michaelfeil/ct2fast-m2m100_418M"
+
 
 router = APIRouter(prefix="", tags=["translation"])
 

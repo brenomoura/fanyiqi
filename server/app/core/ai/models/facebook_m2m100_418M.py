@@ -1,13 +1,17 @@
-from app.core.ai.base_model import BaseTranslationModel
+import os
+
 from transformers import M2M100ForConditionalGeneration, M2M100Tokenizer
+
+from app.core.ai.base_model import BaseTranslationModel
 from app.core.ai.models.exceptions import NotFoundLanguage
+from app.core.config import settings
 
 
 class FacebookM2M100(BaseTranslationModel):
     def __init__(self):
         self.name = "facebook/m2m100_418M"
         self.tensor = "pt"  # pt is not the lang, it is the TensorType
-        
+        self.cache_dir = os.path.join(settings.BASE_MODEL_PATH, "facebook_m2m100_418M")
 
     def get_model_name(self) -> str:
         return self.name
@@ -16,9 +20,10 @@ class FacebookM2M100(BaseTranslationModel):
         for lang in [source_lang, target_lang]:
             self.validate_lang(lang)
 
-        model = M2M100ForConditionalGeneration.from_pretrained(self.name)
-
-        tokenizer = M2M100Tokenizer.from_pretrained(self.name)
+        model = M2M100ForConditionalGeneration.from_pretrained(
+            self.name, cache_dir=self.cache_dir
+        )
+        tokenizer = M2M100Tokenizer.from_pretrained(self.name, cache_dir=self.cache_dir)
 
         tokenizer.src_lang = source_lang
         encoded = tokenizer(text, return_tensors=self.tensor)

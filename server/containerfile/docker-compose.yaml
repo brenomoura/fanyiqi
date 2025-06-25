@@ -9,6 +9,8 @@ services:
       - "8000:8000"
     volumes:
       - ../data:/app/data
+    environment:
+      - BASE_MODEL_PATH=/app/data/models
     depends_on:
       - redis
 
