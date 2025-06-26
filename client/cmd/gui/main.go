@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/brenomoura/fanyiqi/internal/config"
@@ -33,8 +34,10 @@ type Application struct {
 	apiKeyEntry       *views.CustomEntry
 	inputSelectEntry  *views.CustomSelect
 	outputSelectEntry *views.CustomSelect
+	providerSelect    *views.CustomSelect
 	inputView         fyne.CanvasObject
 	outputView        fyne.CanvasObject
+	providerOptions   []string
 	languageOptions   [][]string
 	debounceTimer     *time.Timer
 }
@@ -85,6 +88,7 @@ func (a *Application) setupUIComponents() {
 	a.setupSettingsUI()
 	a.setupTranslatorService()
 	a.setupLanguageSelection()
+	a.setupProviderSelection()
 	a.setupMainUI()
 	a.setupEventHandlers()
 	a.setupClipboardIntegration()
@@ -110,9 +114,10 @@ func (a *Application) setupMainUI() {
 
 	inputSelect := a.inputSelectEntry
 	outputSelect := a.outputSelectEntry
+	providerSelect := a.providerSelect
 
 	a.inputView = container.NewBorder(inputSelect, buttons, nil, nil, a.input)
-	a.outputView = container.NewBorder(outputSelect, nil, nil, nil, outputStack)
+	a.outputView = container.NewBorder(outputSelect, providerSelect, nil, nil, outputStack)
 
 	a.mainContent = container.NewGridWithColumns(2, a.inputView, a.outputView)
 }
@@ -175,20 +180,37 @@ func (a *Application) setupTranslatorService() {
 }
 
 func (a *Application) getLanguages() ([][]string, error) {
-	if a.config.APIKey == "" {
+	if a.config.APIKey == "" || a.config.APIURL == "" || a.config.Provider == nil {
 		return [][]string{}, nil
 	}
 	if len(a.languageOptions) > 0 {
 		return a.languageOptions, nil
 	}
 
-	languages, err := a.translator.GetLanguages()
+	languages, err := a.translator.GetLanguages(*a.config.Provider)
 	if err != nil {
 		println("Error fetching languages:", err)
 		return nil, err
 	}
 
 	return languages, nil
+}
+
+func (a *Application) getProviders() ([]string, error) {
+	if a.config.APIKey == "" {
+		return []string{}, nil
+	}
+	if len(a.providerOptions) > 0 {
+		return a.providerOptions, nil
+	}
+
+	providers, err := a.translator.GetModels()
+	if err != nil {
+		println("Error fetching providers:", err)
+		return nil, err
+	}
+
+	return providers, nil
 }
 
 func (a *Application) getSelectOptions() []string {
@@ -201,6 +223,44 @@ func (a *Application) getSelectOptions() []string {
 		options = append(options, lang[0])
 	}
 	return options
+}
+
+func (a *Application) setupProviderSelection() {
+	providersOptions, err := a.getProviders()
+	if err != nil {
+		println("Error setting up providers selection:", err)
+		return
+	}
+	a.providerOptions = providersOptions
+	a.providerSelect = views.NewCustomSelectEntry(views.CustomSelectEntryParams{
+		Window:      &a.window,
+		Options:     providersOptions,
+		Placeholder: "1. Select a provider...",
+	})
+
+	if a.config.Provider != nil {
+		a.providerSelect.SetSelected(*a.config.Provider)
+	}
+
+	a.providerSelect.OnChanged = func(selectedOption string) {
+		a.config.Provider = &selectedOption
+		config.SaveEncryptedConfig(*a.config)
+		langs, err := a.getLanguages()
+		if err != nil {
+			println("Error fetching languages:", err)
+			return
+		}
+		a.languageOptions = langs
+		options := a.getSelectOptions()
+		a.inputSelectEntry.SetOptions(options)
+		a.outputSelectEntry.SetOptions(options)
+		a.inputSelectEntry.PlaceHolder = "2. Select a source language..."
+		a.outputSelectEntry.PlaceHolder = "3. Select a target language..."
+		a.inputSelectEntry.Refresh()
+		a.outputSelectEntry.Refresh()
+	}
+	fmt.Println(a.providerSelect.Options)
+	a.providerSelect.Refresh()
 }
 
 func (a *Application) setupLanguageSelection() {
@@ -218,8 +278,9 @@ func (a *Application) setupLanguageSelection() {
 
 func (a *Application) setupInputSelect(options []string, langsOptions [][]string) {
 	a.inputSelectEntry = views.NewCustomSelectEntry(views.CustomSelectEntryParams{
-		Window:  &a.window,
-		Options: options,
+		Window:      &a.window,
+		Options:     options,
+		Placeholder: "2. Select a source language...",
 	})
 
 	if a.config.SourceLanguage != nil {
@@ -227,12 +288,14 @@ func (a *Application) setupInputSelect(options []string, langsOptions [][]string
 	}
 
 	a.inputSelectEntry.OnChanged = a.createLanguageChangeHandler("SourceLanguage", a.config)
+	a.inputSelectEntry.Refresh()
 }
 
 func (a *Application) setupOutputSelect(options []string, langsOptions [][]string) {
 	a.outputSelectEntry = views.NewCustomSelectEntry(views.CustomSelectEntryParams{
-		Window:  &a.window,
-		Options: options,
+		Window:      &a.window,
+		Options:     options,
+		Placeholder: "3. Select a target language...",
 	})
 
 	if a.config.TargetLanguage != nil {
@@ -240,6 +303,7 @@ func (a *Application) setupOutputSelect(options []string, langsOptions [][]strin
 	}
 
 	a.outputSelectEntry.OnChanged = a.createLanguageChangeHandler("TargetLanguage", a.config)
+	a.outputSelectEntry.Refresh()
 }
 
 func (a *Application) setSelectedLanguage(selectEntry *views.CustomSelect, langsOptions [][]string, langCode string) {
@@ -331,17 +395,18 @@ func (a *Application) handleSwapLanguagesButton() {
 func (a *Application) handleReturnButton() {
 	a.ui.Objects[0] = a.mainContent
 	a.ui.Refresh()
-	if len(a.languageOptions) == 0 {
+	if len(a.providerOptions) == 0 || len(a.languageOptions) == 0 {
 		a.setupTranslatorService()
-		langs, err := a.getLanguages()
+		providers, err := a.getProviders()
 		if err != nil {
-			println("Error fetching languages:", err)
+			println("Error fetching providers:", err)
 			return
 		}
-		a.languageOptions = langs
-		options := a.getSelectOptions()
-		a.inputSelectEntry.SetOptions(options)
-		a.outputSelectEntry.SetOptions(options)
+		a.providerOptions = providers
+		a.providerSelect.SetOptions(providers)
+		a.providerSelect.Refresh()
+		a.inputSelectEntry.PlaceHolder = "Set a provider first to select a source language..."
+		a.outputSelectEntry.PlaceHolder = "Set a provider first to select a target language..."
 		a.inputSelectEntry.Refresh()
 		a.outputSelectEntry.Refresh()
 	}
@@ -375,7 +440,7 @@ func (a *Application) saveConfigs() {
 }
 
 func (a *Application) handleInputChanged(typedChar string) {
-	if typedChar == "" || a.config.SourceLanguage == nil || a.config.TargetLanguage == nil {
+	if typedChar == "" || a.config.SourceLanguage == nil || a.config.TargetLanguage == nil || a.config.Provider == nil {
 		a.output.Text = ""
 		a.output.Refresh()
 		return
@@ -394,6 +459,7 @@ func (a *Application) handleInputChanged(typedChar string) {
 			Text:           typedChar,
 			SourceLanguage: *a.config.SourceLanguage,
 			TargetLanguage: *a.config.TargetLanguage,
+			Model:          *a.config.Provider,
 		})
 
 		if err != nil {

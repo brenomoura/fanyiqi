@@ -31,9 +31,20 @@ func (t *TranslatorService) Translate(params TranslationParams) (TranslationResu
 	return res, err
 }
 
-func (t *TranslatorService) GetLanguages() ([][]string, error) {
+func (t *TranslatorService) GetLanguages(model string) ([][]string, error) {
 	var res [][]string
-	err := t.Client.GetJSON("/languages", &res)
+	var params = map[string]string{"model": model}
+	err := t.Client.GetJSON("/languages", params, &res)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
+func (t *TranslatorService) GetModels() ([]string, error) {
+	var res []string
+	var params = map[string]string{}
+	err := t.Client.GetJSON("/models", params, &res)
 	if err != nil {
 		return nil, err
 	}

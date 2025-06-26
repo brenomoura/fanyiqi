@@ -57,12 +57,19 @@ func (h *HTTPClient) PostJSON(path string, body any, result any) error {
 	return json.NewDecoder(resp.Body).Decode(result)
 }
 
-func (h *HTTPClient) GetJSON(path string, result any) error {
+func (h *HTTPClient) GetJSON(path string, params map[string]string, result any) error {
 	fullURL := h.BaseURL + path
 
 	req, err := http.NewRequest("GET", fullURL, nil)
 	if err != nil {
 		return err
+	}
+	if params != nil {
+		q := req.URL.Query()
+		for k, v := range params {
+			q.Set(k, v)
+		}
+		req.URL.RawQuery = q.Encode()
 	}
 
 	if h.AuthToken != "" {

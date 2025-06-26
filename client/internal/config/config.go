@@ -17,6 +17,7 @@ type TokenData struct {
 type Config struct {
 	APIURL         string  `json:"api_url"`
 	APIKey         string  `json:"api_key"`
+	Provider       *string `json:"provider,omitempty"`
 	SourceLanguage *string `json:"source_language,omitempty"`
 	TargetLanguage *string `json:"target_language,omitempty"`
 }

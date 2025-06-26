@@ -14,14 +14,16 @@ type CustomSelect struct {
 }
 
 type CustomSelectEntryParams struct {
-	Window  *fyne.Window
-	Options []string
+	Window      *fyne.Window
+	Options     []string
+	Placeholder string
 }
 
 func NewCustomSelectEntry(params CustomSelectEntryParams) *CustomSelect {
 	selectInput := &CustomSelect{}
 	selectInput.ExtendBaseWidget(selectInput)
 	selectInput.Select.SetOptions(params.Options)
+	selectInput.Select.PlaceHolder = params.Placeholder
 	selectInput.setWindow(params.Window)
 	selectInput.options = params.Options
 	return selectInput
