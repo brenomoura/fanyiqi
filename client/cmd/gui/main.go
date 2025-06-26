@@ -1,7 +1,6 @@
 package main
 
 import (
-	"os"
 	"time"
 
 	"github.com/brenomoura/fanyiqi/internal/config"
@@ -30,6 +29,7 @@ type Application struct {
 	input             *views.CustomInput
 	output            *views.CustomOutput
 	loading           *views.Loading
+	apiURLEntry       *views.CustomEntry
 	apiKeyEntry       *views.CustomEntry
 	inputSelectEntry  *views.CustomSelect
 	outputSelectEntry *views.CustomSelect
@@ -103,7 +103,7 @@ func (a *Application) setupMainUI() {
 	a.loading = views.NewLoading()
 	outputStack := container.New(layout.NewStackLayout(), a.output, a.loading.Container)
 
-	clearButton := widget.NewButtonWithIcon("Clear (Ctrl + PQP)", theme.ContentClearIcon(), a.handleClear)
+	clearButton := widget.NewButtonWithIcon("Clear", theme.ContentClearIcon(), a.handleClear)
 	settingsButton := widget.NewButtonWithIcon("Settings", theme.SettingsIcon(), a.handleSettingsButton)
 	swapLanguagesButton := widget.NewButtonWithIcon("Swap Languages", theme.ViewRefreshIcon(), a.handleSwapLanguagesButton)
 	buttons := container.NewGridWithColumns(3, clearButton, settingsButton, swapLanguagesButton)
@@ -118,6 +118,15 @@ func (a *Application) setupMainUI() {
 }
 
 func (a *Application) setupSettingsUI() {
+	a.apiURLEntry = views.NewCustomEntry(
+		&a.window,
+		"Insert here the API URL from the provider...",
+		false,
+	)
+
+	if a.config != nil && a.config.APIKey != "" {
+		a.apiURLEntry.SetPlaceHolder("API URL already set. To overwrite, type the new URL and click 'Save'.")
+	}
 	a.apiKeyEntry = views.NewCustomEntry(
 		&a.window,
 		"Insert here the API key from the provider...",
@@ -125,13 +134,18 @@ func (a *Application) setupSettingsUI() {
 	)
 
 	if a.config != nil && a.config.APIKey != "" {
-		a.apiKeyEntry.SetPlaceHolder("API Key already set. To overwrite, type the new key and click 'Save API Key'.")
+		a.apiKeyEntry.SetPlaceHolder("API Key already set. To overwrite, type the new key and click 'Save'.")
 	}
 
 	translationButton := widget.NewButtonWithIcon("Translate!", theme.DocumentIcon(), a.handleReturnButton)
-	saveAPIKeyButton := widget.NewButtonWithIcon("Save API Key", theme.DocumentSaveIcon(), a.saveAPIKey)
-	settingsButtons := container.NewGridWithColumns(2, translationButton, saveAPIKeyButton)
-	a.settingsContent = container.New(layout.NewGridLayoutWithRows(2), a.apiKeyEntry, container.New(layout.NewCenterLayout(), settingsButtons))
+	saveConfigsButton := widget.NewButtonWithIcon("Save", theme.DocumentSaveIcon(), a.saveConfigs)
+	settingsButtons := container.NewGridWithColumns(2, translationButton, saveConfigsButton)
+	a.settingsContent = container.New(
+		layout.NewVBoxLayout(),
+		a.apiURLEntry,
+		a.apiKeyEntry,
+		container.New(layout.NewCenterLayout(), settingsButtons),
+	)
 }
 
 func (a *Application) setupUI() {
@@ -154,12 +168,8 @@ func (a *Application) setupEventHandlers() {
 }
 
 func (a *Application) setupTranslatorService() {
-	apiURL := os.Getenv("FANYIQI_API_URL")
-	if apiURL == "" {
-		apiURL = "http://localhost:8000/api/v1"
-	}
 	a.translator = translator.NewTranslatorService(
-		apiURL,
+		a.config.APIURL,
 		a.config.APIKey,
 	)
 }
@@ -337,7 +347,14 @@ func (a *Application) handleReturnButton() {
 	}
 }
 
-func (a *Application) saveAPIKey() {
+func (a *Application) saveConfigs() {
+	apiURL := a.apiURLEntry.Text
+	if apiURL == "" {
+		a.apiURLEntry.SetPlaceHolder("Please type your API URL before saving it.")
+		a.apiURLEntry.Refresh()
+		return
+	}
+
 	apiKey := a.apiKeyEntry.Text
 	if apiKey == "" {
 		a.apiKeyEntry.SetPlaceHolder("Please type your API Key before saving it.")
@@ -345,11 +362,15 @@ func (a *Application) saveAPIKey() {
 		return
 	}
 
+	a.config.APIURL = apiURL
 	a.config.APIKey = apiKey
 	config.SaveEncryptedConfig(*a.config)
 
+	a.apiURLEntry.Text = ""
 	a.apiKeyEntry.Text = ""
-	a.apiKeyEntry.SetPlaceHolder("API Key saved successfully! You can change it anytime by typing the new key and click 'Save API Key'.")
+	a.apiURLEntry.SetPlaceHolder("API URL saved successfully! You can change it anytime by typing the new URL and click 'Save'.")
+	a.apiKeyEntry.SetPlaceHolder("API Key saved successfully! You can change it anytime by typing the new key and click 'Save'.")
+	a.apiURLEntry.Refresh()
 	a.apiKeyEntry.Refresh()
 }
 

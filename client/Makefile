@@ -3,10 +3,10 @@ install:
 	go mod tidy && \
 	go mod vendor
 
-API_URL ?= http://localhost:8000/api/v1
+# API_URL ?= http://localhost:8000/api/v1
 
 run:
-	FANYIQI_API_URL=$(API_URL) go run cmd/gui/main.go
+	go run cmd/gui/main.go
 
 lint:
 	golangci-lint run ./...
