@@ -31,6 +31,7 @@ func getKeyFilePath() (string, error) {
 	if err := os.MkdirAll(appDir, 0700); err != nil {
 		return "", err
 	}
+	// TODO: Use a more secure place
 	return filepath.Join(appDir, "key.bin"), nil
 }
 

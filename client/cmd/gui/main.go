@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/brenomoura/fanyiqi/internal/config"
@@ -69,6 +70,14 @@ func (a *Application) initClipboard() {
 
 func (a *Application) createAppWindow() {
 	a.app = app.New()
+	iconBytes, err := os.ReadFile("ui/assets/fanyiqi_icon.png")
+	if err != nil {
+		panic(fmt.Sprintf("failed to read icon file: %v", err))
+	}
+	a.app.SetIcon(&fyne.StaticResource{
+		StaticName:    "icon",
+		StaticContent: iconBytes,
+	})
 	a.window = a.app.NewWindow("fanyiqi")
 	a.app.Settings().SetTheme(&views.CustomTheme{Theme: theme.DefaultTheme()})
 	a.window.Resize(utils.SetWindowSize())
@@ -259,7 +268,7 @@ func (a *Application) setupProviderSelection() {
 		a.inputSelectEntry.Refresh()
 		a.outputSelectEntry.Refresh()
 	}
-	fmt.Println(a.providerSelect.Options)
+
 	a.providerSelect.Refresh()
 }
 
@@ -395,7 +404,7 @@ func (a *Application) handleSwapLanguagesButton() {
 func (a *Application) handleReturnButton() {
 	a.ui.Objects[0] = a.mainContent
 	a.ui.Refresh()
-	if len(a.providerOptions) == 0 || len(a.languageOptions) == 0 {
+	if len(a.providerOptions) == 0 || len(a.languageOptions) == 0 || a.config.Provider == nil || a.config.SourceLanguage == nil || a.config.TargetLanguage == nil {
 		a.setupTranslatorService()
 		providers, err := a.getProviders()
 		if err != nil {
@@ -404,9 +413,14 @@ func (a *Application) handleReturnButton() {
 		}
 		a.providerOptions = providers
 		a.providerSelect.SetOptions(providers)
+		a.providerSelect.Selected = ""
 		a.providerSelect.Refresh()
 		a.inputSelectEntry.PlaceHolder = "Set a provider first to select a source language..."
 		a.outputSelectEntry.PlaceHolder = "Set a provider first to select a target language..."
+		a.inputSelectEntry.Selected = ""
+		a.outputSelectEntry.Selected = ""
+		a.inputSelectEntry.SetOptions([]string{})
+		a.outputSelectEntry.SetOptions([]string{})
 		a.inputSelectEntry.Refresh()
 		a.outputSelectEntry.Refresh()
 	}
@@ -429,6 +443,9 @@ func (a *Application) saveConfigs() {
 
 	a.config.APIURL = apiURL
 	a.config.APIKey = apiKey
+	a.config.SourceLanguage = nil
+	a.config.TargetLanguage = nil
+	a.config.Provider = nil
 	config.SaveEncryptedConfig(*a.config)
 
 	a.apiURLEntry.Text = ""
