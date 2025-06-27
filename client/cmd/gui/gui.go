@@ -1,4 +1,4 @@
-package main
+package gui
 
 import (
 	"fmt"
@@ -43,7 +43,7 @@ type Application struct {
 	debounceTimer     *time.Timer
 }
 
-func main() {
+func SetupGUI() {
 	app := &Application{}
 	app.initialize()
 	app.run()
