@@ -24,3 +24,6 @@ app.db
 
 # models
 server/data/models
+
+# fyne builds
+client/fyne-cross

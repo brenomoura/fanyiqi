@@ -71,9 +71,11 @@ func (a *Application) initClipboard() {
 func (a *Application) createAppWindow() {
 	a.app = app.New()
 	iconBytes, err := os.ReadFile("ui/assets/fanyiqi_icon.png")
+
 	if err != nil {
 		panic(fmt.Sprintf("failed to read icon file: %v", err))
 	}
+
 	a.app.SetIcon(&fyne.StaticResource{
 		StaticName:    "icon",
 		StaticContent: iconBytes,
