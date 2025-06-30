@@ -15,3 +15,6 @@ build-linux:
 
 build-windows:
 	fyne-cross windows -app-id fanyiqi.windows -icon ui/assets/fanyiqi_icon.png
+
+build-macos:
+	fyne-cross darwin -app-id fanyiqi.macos -icon ui/assets/fanyiqi_icon.png
