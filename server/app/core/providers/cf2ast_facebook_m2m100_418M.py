@@ -4,8 +4,8 @@ import ctranslate2
 import transformers
 from huggingface_hub import snapshot_download
 
-from app.core.ai.base_model import BaseTranslationModel
-from app.core.ai.models.exceptions import NotFoundLanguage
+from app.core.providers.base_model import BaseTranslationModel
+from app.core.providers.exceptions import NotFoundLanguage
 from app.core.config import settings
 
 

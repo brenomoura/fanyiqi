@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 
 from app.api.routes.shared import get_current_user
-from app.core.ai.models import MODELS
+from app.core.providers import PROVIDERS
 from app.core.security import User
 from app.services.translation import TranslationService
 
@@ -56,6 +56,6 @@ async def get_available_languages(
 @router.get("/models", response_model=list[str])
 async def get_available_models(current_user: User = Depends(get_current_user)):
     try:
-        return list(MODELS.keys())
+        return list(PROVIDERS.keys())
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

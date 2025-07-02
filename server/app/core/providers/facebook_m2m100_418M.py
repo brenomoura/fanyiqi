@@ -2,8 +2,8 @@ import os
 
 from transformers import M2M100ForConditionalGeneration, M2M100Tokenizer
 
-from app.core.ai.base_model import BaseTranslationModel
-from app.core.ai.models.exceptions import NotFoundLanguage
+from app.core.providers.base_model import BaseTranslationModel
+from app.core.providers.exceptions import NotFoundLanguage
 from app.core.config import settings
 
 

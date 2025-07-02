@@ -1,6 +1,6 @@
 from typing import List, Tuple
 
-from app.core.ai.models import MODELS
+from app.core.providers import PROVIDERS
 
 
 class NotFoundModelException(Exception): ...
@@ -11,7 +11,7 @@ class TransalationError(Exception): ...
 
 class TranslationService:
     def __init__(self, model_name: str):
-        model = MODELS.get(model_name)
+        model = PROVIDERS.get(model_name)
         if model is None:
             raise NotFoundModelException
         self.model = model()

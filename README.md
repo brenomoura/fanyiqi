@@ -1,4 +1,6 @@
-# fanyiqi (WIP)
+# fanyiqi
+
+Still in Work In Progress, but already usable. It is missing the CI/CD pipeline, and also to set the binaries to a keyboard shortcut, but it is functional and ready to use.
 
 **fanyiqi** is a lightweight and personal translation tool. It combines a graphical cross-platform desktop client (built in Go) with a backend API (built in Python with FastAPI) which integrates with several providers.
 
@@ -76,7 +78,7 @@ The main idea is to keep it simple and intuitive, so, with the generated binarie
 
 - **Facebook M2M100 (418M)** (offline models) — [Hugging Face Model](https://huggingface.co/facebook/m2m100_418M)
 - **CTranslate2 Fast M2M100 (418M)** (offline models) — [Hugging Face Model](https://huggingface.co/michaelfeil/ct2fast-m2m100_418M)
-- **DeepL** (To be implemented)
+- **Google Translate**
 
 Note: The models used are the lightest available, optimized for speed and size, so it is possible to provide some not desirable results. 
 
