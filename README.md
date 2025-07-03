@@ -43,6 +43,10 @@ docker-compose up --build
 
 ---
 
+### Generating API Key
+
+With the server running, it will be necessary to create an user and generate an API key to use the client. You can do this by accessing the `/docs` endpoint of the server, which will provide an interactive Swagger UI.
+
 ## Running the Client (Desktop GUI)
 
 ### Option 1: Run from source
@@ -68,6 +72,9 @@ make build-macos
 Note: For now, the only tested binary is the Linux version, but you can build for Windows and macOS as well.
 
 ---
+
+### Usage
+The first time you run the client, it will ask for the server URL and the API key. After that, you can start translating text.
 
 ## Keyboard Shortcut
 The main idea is to keep it simple and intuitive, so, with the generated binaries, you can set a global keyboard shortcut to open the app and translate text from anywhere.
